@@ -1,5 +1,5 @@
 <form [formGroup]="formUpload" class="form-container">
-  <mat-card-footer *ngIf="(loading$ | async)">
+  <mat-card-footer *ngIf="loading">
     <mat-progress-bar mode="indeterminate"></mat-progress-bar>
   </mat-card-footer>
   <mat-card-header>
@@ -9,15 +9,17 @@
   </mat-card-header>
   <mat-form-field>
     <mat-label>Selecione o XML</mat-label>
-    <ngx-mat-file-input formControlName="file_xml" placeholder="Selecione o XML" [accept]="'.xml'" multiple
+    <ngx-mat-file-input #removableInput formControlName="file_xml" placeholder="Selecione o XML" [accept]="'.xml'"
+                        multiple
                         (change)="prepareData()"></ngx-mat-file-input>
-    <mat-icon matSuffix>folder</mat-icon>
+    <button mat-icon-button matSuffix *ngIf="!removableInput.empty" (click)="removableInput.clear($event)">
+      <mat-icon>clear</mat-icon>
+    </button>
   </mat-form-field>
   <mat-card-actions [align]="'end'">
-    <button (click)="onCancel()" mat-stroked-button color="accent">Cancelar</button>
     <button (click)="onSubmit()"
             mat-stroked-button color="primary"
-            [disabled]="(loading$ | async)">
+            [disabled]="loading">
       Upload
     </button>
   </mat-card-actions>

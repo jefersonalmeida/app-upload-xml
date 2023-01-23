@@ -16,12 +16,6 @@ import {FormComponent} from './form/form.component';
 import {FileInputConfig, MaterialFileInputModule, NGX_MAT_FILE_INPUT_CONFIG} from 'ngx-material-file-input';
 import {MatInputModule} from '@angular/material/input';
 import {FormsModule, ReactiveFormsModule} from '@angular/forms';
-import {StoreModule} from '@ngrx/store';
-import {metaReducers, ROOT_REDUCERS} from './store/app.reducer';
-import {EffectsModule} from '@ngrx/effects';
-import {AppEffects} from './store/app.effect';
-import {StoreDevtoolsModule} from '@ngrx/store-devtools';
-import {environment} from '../environments/environment';
 import {MatTableModule} from '@angular/material/table';
 import {MatPaginatorModule} from '@angular/material/paginator';
 import {MatSortModule} from '@angular/material/sort';
@@ -56,21 +50,6 @@ export const matFileInputConfig: FileInputConfig = {
     MatSnackBarModule,
     MaterialFileInputModule,
     MatInputModule,
-
-
-    StoreModule.forRoot(ROOT_REDUCERS, {
-      metaReducers,
-      runtimeChecks: {
-        strictStateImmutability: true,
-        strictActionImmutability: true,
-        strictStateSerializability: true,
-        strictActionSerializability: false,
-        strictActionWithinNgZone: true,
-        strictActionTypeUniqueness: true,
-      },
-    }),
-    EffectsModule.forRoot([AppEffects]),
-    StoreDevtoolsModule.instrument({maxAge: 50, logOnly: environment.production}),
     MatTableModule,
     MatPaginatorModule,
     MatSortModule,

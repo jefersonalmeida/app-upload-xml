@@ -1,32 +1,30 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, OnInit} from '@angular/core';
 import {FormBuilder, Validators} from '@angular/forms';
 import {FileInput} from 'ngx-material-file-input';
 import * as xml2js from 'xml2js';
 import {FileInterface, XmlInterface} from '../interface/xml.interface';
-import {AppFacade} from '../store/app.facade';
-import {ReplaySubject, take, takeUntil} from 'rxjs';
 import {MatSnackBar} from '@angular/material/snack-bar';
+import {AppService} from '../app.service';
 
 @Component({
   selector: 'app-form',
   templateUrl: './form.component.html',
   styleUrls: ['./form.component.scss'],
 })
-export class FormComponent implements OnInit, OnDestroy {
+export class FormComponent implements OnInit {
   formUpload = this.fb.group({
     file_xml: this.fb.control(null, [
       Validators.required,
     ]),
   });
 
-  readonly files$ = this.appFacade.files$;
-  readonly loading$ = this.appFacade.loading$;
-  private destroyed$: ReplaySubject<boolean> = new ReplaySubject(1);
+  files: FileInterface[] = [];
+  loading: boolean = false;
 
   constructor(
     private readonly fb: FormBuilder,
-    private readonly appFacade: AppFacade,
-    private readonly _snackBar: MatSnackBar,
+    private readonly snackBar: MatSnackBar,
+    private readonly appService: AppService,
   ) {
 
   }
@@ -35,31 +33,43 @@ export class FormComponent implements OnInit, OnDestroy {
   }
 
   prepareData() {
-    if (this.formUpload) {
-      const data: FileInput = (this.formUpload.get('file_xml')?.value as unknown as FileInput);
-      data.files.forEach(file => this.extractDataAndSave(file));
+    if (!this.formUpload) {
+      return;
     }
-  }
-
-  onCancel() {
-    this.appFacade.startup();
+    const data: FileInput = (this.formUpload.get('file_xml')?.value as unknown as FileInput);
+    data.files.forEach(file => this.extractDataAndSave(file));
   }
 
   onSubmit() {
-    this.files$.pipe(
-      take(1),
-      takeUntil(this.destroyed$),
-    ).subscribe({
-      next: (res: any) => res?.forEach((file: FileInterface) => this.appFacade.uploadData(file)),
-      complete: () => {
-        this.formUpload.reset();
-        this.formUpload.markAsDirty();
-      },
-    });
+    if (!this.files.length) {
+      return;
+    }
+
+    this.loading = true;
+
+    for (let i = 0; i < this.files.length; i++) {
+      this.appService.upload(this.files[i])
+        .subscribe(
+          {
+            next: () => {
+              this.openSnackBar(`Arquivo ${this.files[i].name} enviado com sucesso`)
+            },
+            error: () => {
+              this.openSnackBar(`Erro ao enviar o arquivo: ${this.files[i].name}`)
+            },
+            complete: () => {
+              if (i + 1 === this.files.length) {
+                this.files = [];
+                this.loading = false;
+              }
+            },
+          },
+        );
+    }
   }
 
   openSnackBar(message: string, action?: string) {
-    this._snackBar.open(message, action);
+    this.snackBar.open(message, action);
   }
 
   private extractDataAndSave(file: File) {
@@ -71,7 +81,7 @@ export class FormComponent implements OnInit, OnDestroy {
         const arr = reader.result.split(',');
         const bstr = atob(arr[1]);
         this.parseXML(bstr).then(result => {
-          this.appFacade.saveFile([{name: file.name, data: result}]);
+          this.files.push({name: file.name, data: result});
         });
       }
     };
@@ -105,11 +115,5 @@ export class FormComponent implements OnInit, OnDestroy {
         resolve(xmlData);
       });
     });
-  }
-
-  ngOnDestroy(): void {
-    this.destroyed$.next(true);
-    this.destroyed$.complete();
-    this.destroyed$.unsubscribe();
   }
 }

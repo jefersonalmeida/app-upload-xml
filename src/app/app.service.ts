@@ -12,7 +12,6 @@ export class AppService {
   }
 
   upload(model: FileInterface): Observable<void> {
-    console.log(model.data);
     return this.http.post<void>(`${API_URL}/upload`, model.data);
   }
 }
