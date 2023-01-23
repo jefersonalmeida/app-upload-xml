@@ -5,6 +5,7 @@ import * as xml2js from 'xml2js';
 import {FileInterface, XmlInterface} from '../interface/xml.interface';
 import {MatSnackBar} from '@angular/material/snack-bar';
 import {AppService} from '../app.service';
+import {concatMap, delay, from, mergeMap, of} from 'rxjs';
 
 @Component({
   selector: 'app-form',
@@ -47,25 +48,23 @@ export class FormComponent implements OnInit {
 
     this.loading = true;
 
-    for (let i = 0; i < this.files.length; i++) {
-      this.appService.upload(this.files[i])
-        .subscribe(
-          {
-            next: () => {
-              this.openSnackBar(`Arquivo ${this.files[i].name} enviado com sucesso`)
-            },
-            error: () => {
-              this.openSnackBar(`Erro ao enviar o arquivo: ${this.files[i].name}`)
-            },
-            complete: () => {
-              if (i + 1 === this.files.length) {
-                this.files = [];
-                this.loading = false;
-              }
-            },
-          },
-        );
-    }
+    const send = from(this.files).pipe(
+      concatMap(item => of(item).pipe(delay(2000))),
+      mergeMap(res => this.appService.upload(res)),
+    );
+
+    send.subscribe({
+      next: () => this.openSnackBar(`Arquivos enviado com sucesso`),
+      error: () => {
+        this.openSnackBar(`Erro ao enviar o arquivo`);
+        this.files = [];
+        this.loading = false;
+      },
+      complete: () => {
+        this.files = [];
+        this.loading = false;
+      },
+    })
   }
 
   openSnackBar(message: string, action?: string) {
