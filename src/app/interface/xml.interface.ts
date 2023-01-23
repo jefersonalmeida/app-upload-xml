@@ -7,12 +7,12 @@ export interface XmlInterface {
   id?: string;
   code: string;
   date: Date;
-  region: RegionInterface[];
+  regions: RegionInterface[];
 }
 
 export interface RegionInterface {
   acronym: string;
   purchase: number[];
   generation: number[];
-  average_price: number[];
+  average: number[];
 }

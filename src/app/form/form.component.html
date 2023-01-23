@@ -1,0 +1,24 @@
+<form [formGroup]="formUpload" class="form-container">
+  <mat-card-footer *ngIf="(loading$ | async)">
+    <mat-progress-bar mode="indeterminate"></mat-progress-bar>
+  </mat-card-footer>
+  <mat-card-header>
+    <mat-card-title>
+      Formulário de upload
+    </mat-card-title>
+  </mat-card-header>
+  <mat-form-field>
+    <mat-label>Selecione o XML</mat-label>
+    <ngx-mat-file-input formControlName="file_xml" placeholder="Selecione o XML" [accept]="'.xml'" multiple
+                        (change)="prepareData()"></ngx-mat-file-input>
+    <mat-icon matSuffix>folder</mat-icon>
+  </mat-form-field>
+  <mat-card-actions [align]="'end'">
+    <button (click)="onCancel()" mat-stroked-button color="accent">Cancelar</button>
+    <button (click)="onSubmit()"
+            mat-stroked-button color="primary"
+            [disabled]="(loading$ | async)">
+      Upload
+    </button>
+  </mat-card-actions>
+</form>
